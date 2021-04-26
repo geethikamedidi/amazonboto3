@@ -8,9 +8,9 @@ def query_session():
 
     params = {
         'region': 'us-west-2',
-        'database': 'foodb',
+        'database': 'parquetdb2',
         'bucket': 'clis3',
-        'path': 'clis3/output/',
+        'path': 'output/',
         'query': 'SELECT * FROM user_parquet limit 10;'
     }
 
@@ -21,26 +21,28 @@ def query_session():
                                                                                   params[
                                                                                       'path']})
     query_execution_details = ath.get_query_execution(QueryExecutionId=response_query_execution_id['QueryExecutionId'])
-    print(query_execution_details)
+    print("query_execution_details: " + str(query_execution_details))
 
     status = "RUNNING"
-    maxIterations = 5
+    maxIterations = 10
     while maxIterations > 0:
         maxIterations = maxIterations - 1
-        query_execution_details = ath.get_query_execution(QueryExecutionId=response_query_execution_id['QueryExecutionId'])
+        query_execution_details = ath.get_query_execution(
+            QueryExecutionId=response_query_execution_id['QueryExecutionId'])
         status = query_execution_details['QueryExecution']['Status']['State']
-        print(status)
+        print("Status of the query execution: " + status)
         if (status == 'FAILED') | (status == 'CANCELLED'):
             return False
         elif status == 'SUCCEEDED':
             location = query_execution_details['QueryExecution']['ResultConfiguration']['OutputLocation']
-            print("location: "+location)
-            response_query_result = ath.get_query_results(QueryExecutionId=response_query_execution_id['QueryExecutionId'])
+            print("location of the result of the query execution: " + location)
+            response_query_result = ath.get_query_results(
+                QueryExecutionId=response_query_execution_id['QueryExecutionId'])
             resultSet = response_query_result['ResultSet']
-            print(resultSet)
+            print("ResultSet----------" + str(resultSet))
             return True
         else:
             time.sleep(1)
 
 
-print(query_session())
+query_session()
